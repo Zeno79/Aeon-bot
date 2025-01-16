@@ -195,8 +195,7 @@ class RcloneList:
         if (
             self.path
             or len(self.__sections) > 1
-            or self.__rc_user
-            and self.__rc_owner
+            or (self.__rc_user and self.__rc_owner)
         ):
             buttons.callback("Back", "rcq back pa", position="footer")
         if self.path:
@@ -216,7 +215,7 @@ class RcloneList:
             msg += f" | Page: {int(page)}/{pages} | Page Step: {self.page_step}"
         msg += f"\n\nItem Type: {self.item_type}\nConfig Path: {self.config_path}"
         msg += f"\nCurrent Path: <code>{self.remote}{self.path}</code>"
-        msg += f"\nTimeout: {get_readable_time(self.__timeout-(time()-self.__time))}"
+        msg += f"\nTimeout: {get_readable_time(self.__timeout - (time() - self.__time))}"
         await self.__send_list_message(msg, button)
 
     async def get_path(self, itype=""):
@@ -280,7 +279,7 @@ class RcloneList:
                 else "\nTransfer Type: Upload"
             )
             msg += f"\nConfig Path: {self.config_path}"
-            msg += f"\nTimeout: {get_readable_time(self.__timeout-(time()-self.__time))}"
+            msg += f"\nTimeout: {get_readable_time(self.__timeout - (time() - self.__time))}"
             buttons = ButtonMaker()
             for remote in self.__sections:
                 buttons.callback(remote, f"rcq re {remote}:")
@@ -297,7 +296,7 @@ class RcloneList:
                 if self.list_status == "rcd"
                 else "\nTransfer Type: Upload"
             )
-            msg += f"\nTimeout: {get_readable_time(self.__timeout-(time()-self.__time))}"
+            msg += f"\nTimeout: {get_readable_time(self.__timeout - (time() - self.__time))}"
             buttons = ButtonMaker()
             buttons.callback("Owner Config", "rcq owner")
             buttons.callback("My Config", "rcq user")

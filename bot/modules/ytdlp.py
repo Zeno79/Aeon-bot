@@ -140,7 +140,7 @@ class YtSelection:
             buttons.callback("Best Audios", "ytq ba/b")
             buttons.callback("Cancel", "ytq cancel", "footer")
             self.__main_buttons = buttons.column(3)
-            msg = f"Choose Playlist Videos Quality:\nTimeout: {get_readable_time(self.__timeout-(time()-self.__time), True)}"
+            msg = f"Choose Playlist Videos Quality:\nTimeout: {get_readable_time(self.__timeout - (time() - self.__time), True)}"
         else:
             format_dict = result.get("formats")
             if format_dict is not None:
@@ -195,7 +195,7 @@ class YtSelection:
             buttons.callback("Best Audio", "ytq ba/b")
             buttons.callback("Cancel", "ytq cancel", "footer")
             self.__main_buttons = buttons.column(2)
-            msg = f"Choose Video Quality:\nTimeout: {get_readable_time(self.__timeout-(time()-self.__time), True)}"
+            msg = f"Choose Video Quality:\nTimeout: {get_readable_time(self.__timeout - (time() - self.__time), True)}"
         self.__reply_to = await send_message(
             self.__message, msg, self.__main_buttons
         )
@@ -206,9 +206,9 @@ class YtSelection:
 
     async def back_to_main(self):
         if self.__is_playlist:
-            msg = f"Choose Playlist Videos Quality:\nTimeout: {get_readable_time(self.__timeout-(time()-self.__time), True)}"
+            msg = f"Choose Playlist Videos Quality:\nTimeout: {get_readable_time(self.__timeout - (time() - self.__time), True)}"
         else:
-            msg = f"Choose Video Quality:\nTimeout: {get_readable_time(self.__timeout-(time()-self.__time), True)}"
+            msg = f"Choose Video Quality:\nTimeout: {get_readable_time(self.__timeout - (time() - self.__time), True)}"
         await edit_message(self.__reply_to, msg, self.__main_buttons)
 
     async def qual_subbuttons(self, b_name):
@@ -220,7 +220,7 @@ class YtSelection:
         buttons.callback("Back", "ytq back", "footer")
         buttons.callback("Cancel", "ytq cancel", "footer")
         subbuttons = buttons.column(2)
-        msg = f"Choose Bit rate for <b>{b_name}</b>:\nTimeout: {get_readable_time(self.__timeout-(time()-self.__time), True)}"
+        msg = f"Choose Bit rate for <b>{b_name}</b>:\nTimeout: {get_readable_time(self.__timeout - (time() - self.__time), True)}"
         await edit_message(self.__reply_to, msg, subbuttons)
 
     async def mp3_subbuttons(self):
@@ -233,7 +233,7 @@ class YtSelection:
         buttons.callback("Back", "ytq back")
         buttons.callback("Cancel", "ytq cancel")
         subbuttons = buttons.column(3)
-        msg = f"Choose mp3 Audio{i} Bitrate:\nTimeout: {get_readable_time(self.__timeout-(time()-self.__time), True)}"
+        msg = f"Choose mp3 Audio{i} Bitrate:\nTimeout: {get_readable_time(self.__timeout - (time() - self.__time), True)}"
         await edit_message(self.__reply_to, msg, subbuttons)
 
     async def audio_format(self):
@@ -245,7 +245,7 @@ class YtSelection:
         buttons.callback("Back", "ytq back", "footer")
         buttons.callback("Cancel", "ytq cancel", "footer")
         subbuttons = buttons.column(3)
-        msg = f"Choose Audio{i} Format:\nTimeout: {get_readable_time(self.__timeout-(time()-self.__time), True)}"
+        msg = f"Choose Audio{i} Format:\nTimeout: {get_readable_time(self.__timeout - (time() - self.__time), True)}"
         await edit_message(self.__reply_to, msg, subbuttons)
 
     async def audio_quality(self, format):
@@ -257,7 +257,7 @@ class YtSelection:
         buttons.callback("Back", "ytq aq back")
         buttons.callback("Cancel", "ytq aq cancel")
         subbuttons = buttons.column(5)
-        msg = f"Choose Audio{i} Qaulity:\n0 is best and 10 is worst\nTimeout: {get_readable_time(self.__timeout-(time()-self.__time), True)}"
+        msg = f"Choose Audio{i} Qaulity:\n0 is best and 10 is worst\nTimeout: {get_readable_time(self.__timeout - (time() - self.__time), True)}"
         await edit_message(self.__reply_to, msg, subbuttons)
 
 
@@ -438,7 +438,7 @@ async def _ytdl(client, message, is_leech=False, same_dir=None, bulk=[]):
         return None
 
     if not is_leech:
-        if config_dict["DEFAULT_UPLOAD"] == "rc" and not up or up == "rc":
+        if (config_dict["DEFAULT_UPLOAD"] == "rc" and not up) or up == "rc":
             up = config_dict["RCLONE_PATH"]
         if not up and config_dict["DEFAULT_UPLOAD"] == "gd":
             up = "gd"

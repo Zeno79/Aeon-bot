@@ -183,7 +183,7 @@ async def start(client, message):
         if DATABASE_URL:
             await DbManager().update_user_tdata(userid, token, token_time)
         msg = "Your token has been successfully generated!\n\n"
-        msg += f'It will be valid for {get_readable_time(int(config_dict["TOKEN_TIMEOUT"]), True)}'
+        msg += f"It will be valid for {get_readable_time(int(config_dict['TOKEN_TIMEOUT']), True)}"
         return await send_message(message, msg)
     elif await CustomFilters.authorized(client, message):
         help_command = f"/{BotCommands.HelpCommand}"

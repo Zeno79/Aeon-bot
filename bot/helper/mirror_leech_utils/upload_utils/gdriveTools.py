@@ -345,7 +345,7 @@ class GoogleDriveHelper:
         )
         file_id = file.get("id")
         LOGGER.info(
-            f'Created G-Drive Folder:\nName: {file.get("name")}\nID: {file_id}'
+            f"Created G-Drive Folder:\nName: {file.get('name')}\nID: {file_id}"
         )
         return file_id
 
@@ -474,7 +474,7 @@ class GoogleDriveHelper:
                 size = self.__processed_bytes
             else:
                 file = self.__copyFile(meta.get("id"), gdrive_id, meta.get("name"))
-                msg += f'<b>Name: </b><code>{file.get("name")}</code>'
+                msg += f"<b>Name: </b><code>{file.get('name')}</code>"
                 durl = self.__G_DRIVE_BASE_DOWNLOAD_URL.format(file.get("id"))
                 if mime_type is None:
                     mime_type = "File"
@@ -724,7 +724,7 @@ class GoogleDriveHelper:
                                 ]
                             )
                         else:
-                            url_path = rquote(f'{file.get("name")}', safe="")
+                            url_path = rquote(f"{file.get('name')}", safe="")
                         url = f"{index_url}/{url_path}/"
                         msg += f' <b><a href="{url}">Index Link</a></b>'
                 elif mime_type == "application/vnd.google-apps.shortcut":
@@ -743,7 +743,7 @@ class GoogleDriveHelper:
                                 for n in self.__get_recursive_list(file, dir_id)
                             )
                         else:
-                            url_path = rquote(f'{file.get("name")}')
+                            url_path = rquote(f"{file.get('name')}")
                         url = f"{index_url}/{url_path}"
                         msg += f' <b> <a href="{url}">Index Link</a></b>'
                 msg += "<br><br>"

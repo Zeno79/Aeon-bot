@@ -418,18 +418,18 @@ async def get_buttons(key=None, edit_type=None, edit_mode=None, mess=None):
         buttons.callback("Close", "botset close")
         for x in range(0, len(config_dict) - 1, 10):
             buttons.callback(
-                f"{int(x/10)+1}", f"botset start var {x}", position="footer"
+                f"{int(x / 10) + 1}", f"botset start var {x}", position="footer"
             )
-        msg = f"<b>Config Variables<b> | Page: {int(START/10)+1}"
+        msg = f"<b>Config Variables<b> | Page: {int(START / 10) + 1}"
     elif key == "private":
         buttons.callback("Back", "botset back")
         buttons.callback("Close", "botset close")
         msg = "Send private files: config.env, token.pickle, cookies.txt, accounts.zip, terabox.txt, .netrc, or any other files!\n\nTo delete a private file, send only the file name as a text message.\n\n<b>Please note:</b> Changes to .netrc will not take effect for aria2c until it's restarted.\n\n<b>Timeout:</b> 60 seconds"
     elif edit_type == "editvar":
         msg = f"<b>Variable:</b> <code>{key}</code>\n\n"
-        msg += f'<b>Description:</b> {bset_display_dict.get(key, "No Description Provided")}\n\n'
+        msg += f"<b>Description:</b> {bset_display_dict.get(key, 'No Description Provided')}\n\n"
         if mess.chat.type == ChatType.PRIVATE:
-            msg += f'<b>Value:</b> <code>{config_dict.get(key, "None")}</code>\n\n'
+            msg += f"<b>Value:</b> <code>{config_dict.get(key, 'None')}</code>\n\n"
         elif key not in bool_vars:
             buttons.callback(
                 "View value", f"botset showvar {key}", position="header"
@@ -627,7 +627,7 @@ async def event_handler(client, query, pfunc, rfunc, document=False):
         return bool(
             user.id == query.from_user.id
             and event.chat.id == chat_id
-            and (event.text or event.document and document)
+            and (event.text or (event.document and document))
         )
 
     handler = client.add_handler(

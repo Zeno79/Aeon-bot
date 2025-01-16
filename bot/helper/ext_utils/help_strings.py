@@ -165,7 +165,7 @@ uset_display_dict = {
         'Send YT-DLP options. Timeout: 60 sec\nFormat: key:value|key:value|key:value.\nExample: format:bv*+mergeall[vcodec=none]|nocheckcertificate:True\nCheck all yt-dlp API options from this <a href="https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L184">file</a> or use this <a href="https://t.me/mltb_official_channel/177">script</a> to convert CLI arguments to API options.',
     ],
     "user_tds": [
-        f'UserTD helps to upload files via the bot to your custom drive destination through global SA mail.\n\n<b>SA Mail:</b> {SA if (SA := GROUPS_EMAIL) else "Not Specified"}',
+        f"UserTD helps to upload files via the bot to your custom drive destination through global SA mail.\n\n<b>SA Mail:</b> {SA if (SA := GROUPS_EMAIL) else 'Not Specified'}",
         "Send User TD details for use while mirroring/cloning.\n<b>Format:</b>\nname drive_id/link index (optional)\n\n<b>NOTE:</b>\n1. You must add our SA mail to your drive with write permission.\n2. Names can have spaces.\n3. Drive ID must be valid for acceptance.\n\n<b>Timeout:</b> 60 sec.",
     ],
 }

@@ -109,8 +109,8 @@ async def pics_callback(_, query):
         no = len(IMAGES) - abs(ind + 1) if ind < 0 else ind + 1
         pic_info = f"<b>Image No. : {no} / {len(IMAGES)}</b>"
         buttons = ButtonMaker()
-        buttons.callback("<<", f"images {data[1]} turn {ind-1}")
-        buttons.callback(">>", f"images {data[1]} turn {ind+1}")
+        buttons.callback("<<", f"images {data[1]} turn {ind - 1}")
+        buttons.callback(">>", f"images {data[1]} turn {ind + 1}")
         buttons.callback("Remove Image", f"images {data[1]} remove {ind}")
         buttons.callback("Close", f"images {data[1]} close")
         buttons.callback("Remove all", f"images {data[1]} removeall", "footer")
@@ -132,10 +132,10 @@ async def pics_callback(_, query):
 
         ind = int(data[3]) + 1
         ind = len(IMAGES) - abs(ind) if ind < 0 else ind
-        pic_info = f"<b>Image No. : {ind+1} / {len(IMAGES)}</b>"
+        pic_info = f"<b>Image No. : {ind + 1} / {len(IMAGES)}</b>"
         buttons = ButtonMaker()
-        buttons.callback("<<", f"images {data[1]} turn {ind-1}")
-        buttons.callback(">>", f"images {data[1]} turn {ind+1}")
+        buttons.callback("<<", f"images {data[1]} turn {ind - 1}")
+        buttons.callback(">>", f"images {data[1]} turn {ind + 1}")
         buttons.callback("Remove image", f"images {data[1]} remove {ind}")
         buttons.callback("Close", f"images {data[1]} close")
         buttons.callback("Remove all", f"images {data[1]} removeall", "footer")

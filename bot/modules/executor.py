@@ -80,7 +80,7 @@ async def execute_code(func, message):
         await temp_file.write(code)
 
     stdout = StringIO()
-    to_compile = f'async def func():\n{indent(code, "  ")}'
+    to_compile = f"async def func():\n{indent(code, '  ')}"
 
     try:
         exec(to_compile, env)
