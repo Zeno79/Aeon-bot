@@ -13,7 +13,7 @@ class BotCommands:
     JdLeechCommand = [f"jdleech{i}", f"jl{i}"]
     YtdlLeechCommand = [f"ytdlleech{i}", f"yl{i}"]
     CloneCommand = f"clone{i}"
-    MediaInfoCommand = [f"mediainfo{i}", "Mi"]  # Updated with 'Mi'
+    MediaInfoCommand = [f"mediainfo{i}", f"Mi{i}"]  # Updated with 'Mi'
     CountCommand = f"count{i}"
     DeleteCommand = f"del{i}"
     CancelAllCommand = f"cancelall{i}"
@@ -36,8 +36,8 @@ class BotCommands:
     AExecCommand = f"aexec{i}"
     ExecCommand = f"exec{i}"
     ClearLocalsCommand = f"clearlocals{i}"
-    BotSetCommand = [f"botsettings{i}", "Bs"]  # Updated with 'Bs'
-    UserSetCommand = [f"settings{i}", "Us"]  # Updated with 'Us'
+    BotSetCommand = [f"botsettings{i}", f"Bs{i}"]  # Updated with 'Bs'
+    UserSetCommand = [f"settings{i}", f"Us{i}"]  # Updated with 'Us'
     SpeedTest = f"speedtest{i}"
     BroadcastCommand = [f"broadcast{i}", "broadcastall"]
     SelectCommand = f"sel{i}"
