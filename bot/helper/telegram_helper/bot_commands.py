@@ -3,6 +3,7 @@ from bot.core.config_manager import Config
 
 i = Config.CMD_SUFFIX
 
+
 class BotCommands:
     def __init__(self, i=""):
         self.StartCommand = "start"
@@ -13,7 +14,7 @@ class BotCommands:
         self.JdLeechCommand = [f"jdleech{i}", f"jl{i}"]
         self.YtdlLeechCommand = [f"ytdlleech{i}", f"yl{i}"]
         self.CloneCommand = f"clone{i}"
-        self.MediaInfoCommand = (f"mediainfo{i}", f"mi{i}")  
+        self.MediaInfoCommand = (f"mediainfo{i}", f"mi{i}")
         self.CountCommand = f"count{i}"
         self.DeleteCommand = f"del{i}"
         self.CancelAllCommand = f"cancelall{i}"
@@ -27,7 +28,7 @@ class BotCommands:
         self.AddSudoCommand = f"addsudo{i}"
         self.RmSudoCommand = f"rmsudo{i}"
         self.PingCommand = f"ping{i}"
-        self.RestartCommand = (f"restart{i}", f"r{i}")  
+        self.RestartCommand = (f"restart{i}", f"r{i}")
         self.RestartSessionsCommand = f"restartses{i}"
         self.StatsCommand = f"stats{i}"
         self.HelpCommand = f"help{i}"
@@ -36,12 +37,13 @@ class BotCommands:
         self.AExecCommand = f"aexec{i}"
         self.ExecCommand = f"exec{i}"
         self.ClearLocalsCommand = f"clearlocals{i}"
-        self.BotSetCommand = (f"bsetting{i}", f"bs{i}")  
-        self.UserSetCommand = (f"usetting{i}", f"us{i}")  
+        self.BotSetCommand = (f"bsetting{i}", f"bs{i}")
+        self.UserSetCommand = (f"usetting{i}", f"us{i}")
         self.SpeedTest = f"speedtest{i}"
         self.BroadcastCommand = [f"broadcast{i}", "broadcastall"]
         self.SelectCommand = f"sel{i}"
         self.RssCommand = f"rss{i}"
+
 
 # Example usage:
 commands = BotCommands(i="1")  # Example with i=1
