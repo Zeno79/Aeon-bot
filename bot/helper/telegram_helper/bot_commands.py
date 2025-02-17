@@ -3,6 +3,7 @@ from bot.core.config_manager import Config
 
 i = Config.CMD_SUFFIX  # Ensure 'i' is defined before using it
 
+
 class BotCommands:
     StartCommand = "start"
     MirrorCommand = [f"mirror{i}", f"m{i}"]
@@ -12,7 +13,7 @@ class BotCommands:
     JdLeechCommand = [f"jdleech{i}", f"jl{i}"]
     YtdlLeechCommand = [f"ytdlleech{i}", f"yl{i}"]
     CloneCommand = f"clone{i}"
-    MediaInfoCommand = [f"mediainfo{i}", f"mi{i}"]  
+    MediaInfoCommand = [f"mediainfo{i}", f"mi{i}"]
     CountCommand = f"count{i}"
     DeleteCommand = f"del{i}"
     CancelAllCommand = f"cancelall{i}"
@@ -35,8 +36,8 @@ class BotCommands:
     AExecCommand = f"aexec{i}"
     ExecCommand = f"exec{i}"
     ClearLocalsCommand = f"clearlocals{i}"
-    BotSetCommand = [f"botsettings{i}", f"bs{i}"]  
-    UserSetCommand = [f"settings{i}", f"us{i}"]  
+    BotSetCommand = [f"botsettings{i}", f"bs{i}"]
+    UserSetCommand = [f"settings{i}", f"us{i}"]
     SpeedTest = f"speedtest{i}"
     BroadcastCommand = [f"broadcast{i}", "broadcastall"]
     SelectCommand = f"sel{i}"
