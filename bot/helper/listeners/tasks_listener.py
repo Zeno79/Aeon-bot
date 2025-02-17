@@ -691,6 +691,3 @@ class MirrorLeechListener:
         await clean_download(self.dir)
         if self.newDir:
             await clean_download(self.newDir)
-
-
-
