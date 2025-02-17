@@ -1,8 +1,7 @@
 # ruff: noqa: RUF012
 from bot.core.config_manager import Config
 
-i = Config.CMD_SUFFIX
-
+i = Config.CMD_SUFFIX  # Ensure 'i' is defined before using it
 
 class BotCommands:
     StartCommand = "start"
@@ -13,7 +12,7 @@ class BotCommands:
     JdLeechCommand = [f"jdleech{i}", f"jl{i}"]
     YtdlLeechCommand = [f"ytdlleech{i}", f"yl{i}"]
     CloneCommand = f"clone{i}"
-    MediaInfoCommand = [f"mediainfo{i}", f"mi{i}"]  # Updated with 'Mi'
+    MediaInfoCommand = [f"mediainfo{i}", f"mi{i}"]  
     CountCommand = f"count{i}"
     DeleteCommand = f"del{i}"
     CancelAllCommand = f"cancelall{i}"
@@ -27,7 +26,7 @@ class BotCommands:
     AddSudoCommand = f"addsudo{i}"
     RmSudoCommand = f"rmsudo{i}"
     PingCommand = f"ping{i}"
-    RestartCommand = f"restart{i}", f"r{i}"]
+    RestartCommand = [f"restart{i}", f"r{i}"]  # Fixed list syntax
     RestartSessionsCommand = f"restartses{i}"
     StatsCommand = f"stats{i}"
     HelpCommand = f"help{i}"
@@ -36,8 +35,8 @@ class BotCommands:
     AExecCommand = f"aexec{i}"
     ExecCommand = f"exec{i}"
     ClearLocalsCommand = f"clearlocals{i}"
-    BotSetCommand = [f"botsettings{i}", f"bs{i}"]  # Updated with 'Bs'
-    UserSetCommand = [f"settings{i}", f"us{i}"]  # Updated with 'Us'
+    BotSetCommand = [f"botsettings{i}", f"bs{i}"]  
+    UserSetCommand = [f"settings{i}", f"us{i}"]  
     SpeedTest = f"speedtest{i}"
     BroadcastCommand = [f"broadcast{i}", "broadcastall"]
     SelectCommand = f"sel{i}"
