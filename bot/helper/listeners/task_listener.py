@@ -360,58 +360,83 @@ class TaskListener(TaskConfig):
             del RCTransfer
         return
 
-    async def on_upload_complete(
-        self,
-        link,
-        files,
-        folders,
-        mime_type,
-        rclone_path="",
-        dir_id="",
-    ):
-        if (
-            self.is_super_chat
-            and Config.INCOMPLETE_TASK_NOTIFIER
-            and Config.DATABASE_URL
-        ):
+async def onUploadComplete(self, link, size, files, folders, mime_type, name, rclonePath=''):
+    user_id = self.message.from_user.id
+    name, _ = await process_file(name, user_id, isMirror=not self.isLeech)
+    user_dict = user_data.get(user_id, {})
+
+    # Remove task from database if enabled
+    if self.is_super_chat and Config.INCOMPLETE_TASK_NOTIFIER and Config.DATABASE_URL:
+        try:
             await database.rm_complete_task(self.message.link)
-        msg = f"<b>Name: </b><code>{escape(self.name)}</code>\n\n<b>Size: </b>{get_readable_file_size(self.size)}"
-        done_msg = f"{self.tag}\nYour task is complete\nPlease check your inbox."
-        LOGGER.info(f"Task Done: {self.name}")
-        if self.is_leech:
-            msg += f"\n<b>Total Files: </b>{folders}"
-            if mime_type != 0:
-                msg += f"\n<b>Corrupted Files: </b>{mime_type}"
-            msg += f"\n<b>cc: </b>{self.tag}\n\n"
-            if not files:
-                await send_message(self.message, msg)
+        except Exception as e:
+            LOGGER.error(f"Database error: {e}")
+
+    # Construct base message
+    msg = f'<b>Name: </b><code>{escape(name)}</code>\n\n'
+    msg += f'<b>Size: </b>{get_readable_file_size(size)}\n'
+    msg += f'<b>Elapsed: </b>{get_readable_time(time() - self.message.date.timestamp())}\n'
+    LOGGER.info(f'Task Done: {name}')
+
+    # Create buttons
+    buttons = ButtonMaker()
+    iButton = ButtonMaker()
+    iButton.ibutton('View in inbox', f"aeon {user_id} private", 'header')
+    iButton = extra_btns(iButton)
+
+    if self.isLeech:
+        if folders > 1:
+            msg += f'<b>Total Files: </b>{folders}\n'
+        if mime_type != 0:
+            msg += f'<b>Corrupted Files: </b>{mime_type}\n'
+        msg += f'<b>Uploaded by: </b>{self.tag}\n'
+        msg += f'<b>User ID: </b><code>{self.message.from_user.id}</code>\n\n'
+
+        if not files:
+            if self.isPrivate:
+                msg += '<b>Files have not been sent for an unspecified reason</b>'
+            await sendMessage(self.message, msg)
+        else:
+            attachmsg = True
+            fmsg, totalmsg = '\n\n', ''
+            lmsg = '<b>Files have been sent. Access them via the provided links.</b>'
+            for index, (file_link, file_name) in enumerate(files.items(), start=1):
+                fmsg += f"{index}. <a href='{file_link}'>{file_name}</a>\n"
+                totalmsg = (msg + lmsg + f"<blockquote>{fmsg}</blockquote>") if attachmsg else fmsg
+                if len(totalmsg.encode()) > 3900:
+                    if self.linkslogmsg:
+                        await editMessage(self.linkslogmsg, totalmsg)
+                        await sendMessage(self.botpmmsg, totalmsg)
+                        self.linkslogmsg = await sendMessage(self.linkslogmsg, "Fetching Details...")
+                    attachmsg = False
+                    await sleep(1)
+                    fmsg = '\n\n'
+
+            if fmsg != '\n\n':
+                if self.linkslogmsg:
+                    await sendMessage(self.linkslogmsg, msg + lmsg + f"<blockquote>{fmsg}</blockquote>")
+                    await deleteMessage(self.linkslogmsg)
+            await sendMessage(self.botpmmsg, msg + lmsg + f"<blockquote>{fmsg}</blockquote>")
+            await deleteMessage(self.botpmmsg)
+
+            # Send completion message to log chat if enabled
+            if Config.LOG_CHAT_ID:
+                await sendMessage(int(Config.LOG_CHAT_ID), msg + f"<blockquote>{lmsg}</blockquote>")
+
+            if self.isSuperGroup:
+                await sendMessage(self.message, f'{msg}<b>Files have been sent to your inbox</b>', iButton.build_menu(1))
             else:
-                fmsg = ""
-                for index, (url, name) in enumerate(files.items(), start=1):
-                    fmsg += f"{index}. <a href='{url}'>{name}</a>\n"
-                    if len(fmsg.encode() + msg.encode()) > 4000:
-                        await send_message(
-                            self.user_id,
-                            f"{msg}<blockquote expandable>{fmsg}</blockquote>",
-                        )
-                        if Config.LOG_CHAT_ID:
-                            await send_message(
-                                int(Config.LOG_CHAT_ID),
-                                f"{msg}<blockquote expandable>{fmsg}</blockquote>",
-                            )
-                        await sleep(1)
-                        fmsg = ""
-                if fmsg != "":
-                    await send_message(
-                        self.user_id,
-                        f"{msg}<blockquote expandable>{fmsg}</blockquote>",
-                    )
-                    if Config.LOG_CHAT_ID:
-                        await send_message(
-                            int(Config.LOG_CHAT_ID),
-                            f"{msg}<blockquote expandable>{fmsg}</blockquote>",
-                        )
-                await send_message(self.message, done_msg)
+                await deleteMessage(self.botpmmsg)
+
+        # Queue management & cleanup
+        if self.seed:
+            if self.newDir:
+                await clean_target(self.newDir)
+            async with queue_dict_lock:
+                if self.uid in non_queued_up:
+                    non_queued_up.remove(self.uid)
+            await start_from_queued()
+
         else:
             msg += f"\n\n<b>Type: </b>{mime_type}"
             if mime_type == "Folder":
