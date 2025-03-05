@@ -360,15 +360,8 @@ class TaskListener(TaskConfig):
             del RCTransfer
         return
 
-
 async def on_upload_complete(
-    self,
-    link,
-    files,
-    folders,
-    mime_type,
-    rclone_path="",
-    dir_id="",
+    self, link, files, folders, mime_type, rclone_path="", dir_id=""
 ):
     if (
         self.is_super_chat
@@ -387,7 +380,6 @@ async def on_upload_complete(
     )
 
     done_msg = "✅ <b>Files have been Sent. Access via Links...</b>\n"
-
     LOGGER.info(f"Task Done: {self.name}")
 
     if self.is_leech:
@@ -400,6 +392,159 @@ async def on_upload_complete(
         for index, (url, name) in enumerate(files.items(), start=1):
             file_list += f"{index}. <a href='{url}'>{name}</a>\n"
             if len((msg + file_list).encode()) > 4000:
+                await send_message(self.user_id, msg + f"<blockquote>{file_list}</blockquote>")
+                if Config.LOG_CHAT_ID:
+                    await send_message(int(Config.LOG_CHAT_ID), msg + f"<blockquote>{file_list}</blockquote>")
+                await sleep(1)
+                file_list = ""
+
+        if file_list:
+            await send_message(self.user_id, msg + f"<blockquote>{file_list}</blockquote>")
+            if Config.LOG_CHAT_ID:
+                await send_message(int(Config.LOG_CHAT_ID), msg + f"<blockquote>{file_list}</blockquote>")
+
+        await send_message(self.message, done_msg)
+
+    else:
+        msg += f"\n\n<b>Type: </b>{mime_type}"
+        if mime_type == "Folder":
+            msg += f"\n<b>SubFolders: </b>{folders}"
+            msg += f"\n<b>Files: </b>{files}"
+
+        if link or (rclone_path and Config.RCLONE_SERVE_URL and not self.private_link):
+            buttons = ButtonMaker()
+            if link:
+                buttons.url_button("☁️ Cloud Link", link)
+            else:
+                msg += f"\n\nPath: <code>{rclone_path}</code>"
+
+            if rclone_path and Config.RCLONE_SERVE_URL and not self.private_link:
+                remote, rpath = rclone_path.split(":", 1)
+                url_path = rutils.quote(f"{rpath}")
+                share_url = f"{Config.RCLONE_SERVE_URL}/{remote}/{url_path}"
+                if mime_type == "Folder":
+                    share_url += "/"
+                buttons.url_button("🔗 Rclone Link", share_url)
+
+            if not rclone_path and dir_id:
+                INDEX_URL = self.user_dict.get("INDEX_URL", "") if self.private_link else Config.INDEX_URL
+                if INDEX_URL:
+                    share_url = f"{INDEX_URL}findpath?id={dir_id}"
+                    buttons.url_button("⚡ Index Link", share_url)
+                    if mime_type.startswith(("image", "video", "audio")):
+                        view_url = f"{INDEX_URL}findpath?id={dir_id}&view=true"
+                        buttons.url_button("🌐 View Link", view_url)
+
+            button = buttons.build_menu(2)
+        else:
+            msg += f"\n\nPath: <code>{rclone_path}</code>"
+            button = None
+
+        msg += f"\n\n<b>cc: </b>{self.tag}"
+        await send_message(self.user_id, msg, button)
+        if Config.LOG_CHAT_ID:
+            await send_message(int(Config.LOG_CHAT_ID), msg, button)
+
+        await send_message(self.message, done_msg)
+
+    if self.seed:
+        await clean_target(self.up_dir)
+        async with queue_dict_lock:
+            non_queued_up.discard(self.mid)
+        await start_from_queued()
+        return
+
+    await clean_download(self.dir)
+    async with task_dict_lock:
+        task_dict.pop(self.mid, None)
+        count = len(task_dict)
+
+    if count == 0:
+        await self.clean()
+    else:
+        await update_status_message(self.message.chat.id)
+
+    async with queue_dict_lock:
+        non_queued_up.discard(self.mid)
+
+    await start_from_queued()
+
+
+async def on_download_error(self, error, button=None):
+    async with task_dict_lock:
+        task_dict.pop(self.mid, None)
+        count = len(task_dict)
+
+    await self.remove_from_same_dir()
+    msg = f"{self.tag} Download: {escape(str(error))}"
+    x = await send_message(self.message, msg, button)
+    create_task(auto_delete_message(x, time=300))
+
+    if count == 0:
+        await self.clean()
+    else:
+        await update_status_message(self.message.chat.id)
+
+    if (
+        self.is_super_chat
+        and Config.INCOMPLETE_TASK_NOTIFIER
+        and Config.DATABASE_URL
+    ):
+        await database.rm_complete_task(self.message.link)
+
+    async with queue_dict_lock:
+        for queue in [queued_dl, queued_up]:
+            if self.mid in queue:
+                queue[self.mid].set()
+                del queue[self.mid]
+        non_queued_dl.discard(self.mid)
+        non_queued_up.discard(self.mid)
+
+    await start_from_queued()
+    await sleep(3)
+    await clean_download(self.dir)
+    if self.up_dir:
+        await clean_download(self.up_dir)
+    if self.thumb and await aiopath.exists(self.thumb):
+        await remove(self.thumb)
+
+
+async def on_upload_error(self, error):
+    async with task_dict_lock:
+        task_dict.pop(self.mid, None)
+        count = len(task_dict)
+
+    x = await send_message(self.message, f"{self.tag} {escape(str(error))}")
+    create_task(auto_delete_message(x, time=300))
+
+    if count == 0:
+        await self.clean()
+    else:
+        await update_status_message(self.message.chat.id)
+
+    if (
+        self.is_super_chat
+        and Config.INCOMPLETE_TASK_NOTIFIER
+        and Config.DATABASE_URL
+    ):
+        await database.rm_complete_task(self.message.link)
+
+    async with queue_dict_lock:
+        for queue in [queued_dl, queued_up]:
+            if self.mid in queue:
+                queue[self.mid].set()
+                del queue[self.mid]
+        non_queued_dl.discard(self.mid)
+        non_queued_up.discard(self.mid)
+
+    await start_from_queued()
+    await sleep(3)
+    await clean_download(self.dir)
+    if self.up_dir:
+        await clean_download(self.up_dir)
+    if self.thumb and await aiopath.exists(self.thumb):
+        await remove(self.thumb)
+
                 await send_message(self.user_id, msg + f"<blockquote>{file_list}</blockquote>")
                 if Config.LOG_CHAT_ID:
                     await send_message(int(Config.LOG_CHAT_ID), msg + f"<blockquote>{file_list}</blockquote>")
