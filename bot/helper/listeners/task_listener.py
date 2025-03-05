@@ -362,7 +362,14 @@ class TaskListener(TaskConfig):
 
 
 async def onUploadComplete(
-    self, link, size, files, folders, mime_type, name, rclonePath=""
+    self,
+    link,
+    size,
+    files,
+    folders,
+    mime_type,
+    name,
+    rclonePath="",
 ):
     user_id = self.message.from_user.id
     name, _ = await process_file(name, user_id, isMirror=not self.isLeech)
@@ -419,28 +426,30 @@ async def onUploadComplete(
                         await editMessage(self.linkslogmsg, totalmsg)
                         await sendMessage(self.botpmmsg, totalmsg)
                         self.linkslogmsg = await sendMessage(
-                            self.linkslogmsg, "Fetching Details..."
+                            self.linkslogmsg,
+                            "Fetching Details...",
                         )
                     attachmsg = False
                     await sleep(1)
                     fmsg = "\n\n"
 
-            if fmsg != "\n\n":
-                if self.linkslogmsg:
-                    await sendMessage(
-                        self.linkslogmsg,
-                        msg + lmsg + f"<blockquote>{fmsg}</blockquote>",
-                    )
-                    await deleteMessage(self.linkslogmsg)
+            if fmsg != "\n\n" and self.linkslogmsg:
+                await sendMessage(
+                    self.linkslogmsg,
+                    msg + lmsg + f"<blockquote>{fmsg}</blockquote>",
+                )
+                await deleteMessage(self.linkslogmsg)
             await sendMessage(
-                self.botpmmsg, msg + lmsg + f"<blockquote>{fmsg}</blockquote>"
+                self.botpmmsg,
+                msg + lmsg + f"<blockquote>{fmsg}</blockquote>",
             )
             await deleteMessage(self.botpmmsg)
 
             # Send completion message to log chat if enabled
             if Config.LOG_CHAT_ID:
                 await sendMessage(
-                    int(Config.LOG_CHAT_ID), msg + f"<blockquote>{lmsg}</blockquote>"
+                    int(Config.LOG_CHAT_ID),
+                    msg + f"<blockquote>{lmsg}</blockquote>",
                 )
 
             if self.isSuperGroup:
