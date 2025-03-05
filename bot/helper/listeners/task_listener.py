@@ -361,7 +361,7 @@ class TaskListener(TaskConfig):
         return
 
 
-async def onUploadComplete(
+async def on_upload_complete(
     self,
     link,
     size,
