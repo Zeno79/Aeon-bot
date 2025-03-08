@@ -1,74 +1,74 @@
+from asyncio import Event, create_subprocess_exec, sleep
+from html import escape
 from os import path as ospath
 from os import walk
-from html import escape
 from time import time
-from asyncio import Event, sleep, create_subprocess_exec
 
-from requests import utils as rutils
-from aioshutil import move
+from aiofiles.os import listdir, makedirs
 from aiofiles.os import path as aiopath
 from aiofiles.os import remove as aioremove
-from aiofiles.os import listdir, makedirs
+from aioshutil import move
 from pyrogram.enums import ChatType
+from requests import utils as rutils
 
 from bot import (
+    GLOBAL_EXTENSION_FILTER,
     LOGGER,
     MAX_SPLIT_SIZE,
-    GLOBAL_EXTENSION_FILTER,
     Interval,
     aria2,
-    queued_dl,
-    queued_up,
     config_dict,
     download_dict,
+    download_dict_lock,
     non_queued_dl,
     non_queued_up,
     queue_dict_lock,
-    download_dict_lock,
+    queued_dl,
+    queued_up,
     status_reply_dict_lock,
 )
 from bot.helper.ext_utils.bot_utils import (
     extra_btns,
-    sync_to_async,
-    get_readable_time,
     get_readable_file_size,
+    get_readable_time,
+    sync_to_async,
 )
 from bot.helper.ext_utils.exceptions import ExtractionArchiveError
 from bot.helper.ext_utils.files_utils import (
-    is_archive,
-    join_files,
-    split_file,
+    clean_download,
     clean_target,
-    process_file,
     get_base_name,
     get_path_size,
-    clean_download,
+    is_archive,
     is_archive_split,
     is_first_archive_split,
+    join_files,
+    process_file,
+    split_file,
 )
 from bot.helper.ext_utils.task_manager import start_from_queued
-from bot.helper.telegram_helper.button_build import ButtonMaker
-from bot.helper.telegram_helper.message_utils import (
-    delete_links,
-    edit_message,
-    send_message,
-    sendCustomMsg,
-    delete_message,
-    five_minute_del,
-    sendMultiMessage,
-    delete_all_messages,
-    update_all_messages,
-)
 from bot.helper.mirror_leech_utils.rclone_utils.transfer import RcloneTransferHelper
+from bot.helper.mirror_leech_utils.status_utils.extract_status import ExtractStatus
+from bot.helper.mirror_leech_utils.status_utils.gdrive_status import GdriveStatus
+from bot.helper.mirror_leech_utils.status_utils.queue_status import QueueStatus
+from bot.helper.mirror_leech_utils.status_utils.rclone_status import RcloneStatus
+from bot.helper.mirror_leech_utils.status_utils.split_status import SplitStatus
+from bot.helper.mirror_leech_utils.status_utils.telegram_status import TelegramStatus
 from bot.helper.mirror_leech_utils.status_utils.zip_status import ZipStatus
 from bot.helper.mirror_leech_utils.upload_utils.gdriveTools import GoogleDriveHelper
-from bot.helper.mirror_leech_utils.status_utils.queue_status import QueueStatus
-from bot.helper.mirror_leech_utils.status_utils.split_status import SplitStatus
-from bot.helper.mirror_leech_utils.status_utils.gdrive_status import GdriveStatus
-from bot.helper.mirror_leech_utils.status_utils.rclone_status import RcloneStatus
-from bot.helper.mirror_leech_utils.status_utils.extract_status import ExtractStatus
 from bot.helper.mirror_leech_utils.upload_utils.telegramEngine import TgUploader
-from bot.helper.mirror_leech_utils.status_utils.telegram_status import TelegramStatus
+from bot.helper.telegram_helper.button_build import ButtonMaker
+from bot.helper.telegram_helper.message_utils import (
+    delete_all_messages,
+    delete_links,
+    delete_message,
+    edit_message,
+    five_minute_del,
+    send_message,
+    sendCustomMsg,
+    sendMultiMessage,
+    update_all_messages,
+)
 
 
 class MirrorLeechListener:
@@ -91,8 +91,10 @@ class MirrorLeechListener:
         drive_id=None,
         index_link=None,
         attachment=None,
-        files_utils={},
+        files_utils=None,
     ):
+        if files_utils is None:
+            files_utils = {}
         if same_dir is None:
             same_dir = {}
         self.message = message
@@ -143,17 +145,16 @@ class MirrorLeechListener:
             msg += f"<b>• User ID: </b><code>{self.message.from_user.id}</code>"
             self.linkslogmsg = await sendCustomMsg(config_dict["LEECH_LOG_ID"], msg)
         self.botpmmsg = await sendCustomMsg(
-            self.message.from_user.id, "<b>Task started</b>"
+            self.message.from_user.id,
+            "<b>Task started</b>",
         )
 
     async def on_download_complete(self):
         multi_links = False
         while True:
             if self.same_dir:
-                if (
-                    self.same_dir["total"] in [1, 0]
-                    or self.same_dir["total"] > 1
-                    and len(self.same_dir["tasks"]) > 1
+                if self.same_dir["total"] in [1, 0] or (
+                    self.same_dir["total"] > 1 and len(self.same_dir["tasks"]) > 1
                 ):
                     break
             else:
@@ -182,7 +183,7 @@ class MirrorLeechListener:
         LOGGER.info(f"Download completed: {name}")
         if multi_links:
             await self.onUploadError(
-                "Downloaded! Starting other part of the Task..."
+                "Downloaded! Starting other part of the Task...",
             )
             return
         if (
@@ -225,13 +226,13 @@ class MirrorLeechListener:
                     else:
                         up_path = dl_path
                     for dirpath, _, files in await sync_to_async(
-                        walk, dl_path, topdown=False
+                        walk,
+                        dl_path,
+                        topdown=False,
                     ):
                         for file_ in files:
-                            if (
-                                is_first_archive_split(file_)
-                                or is_archive(file_)
-                                and not file_.endswith(".rar")
+                            if is_first_archive_split(file_) or (
+                                is_archive(file_) and not file_.endswith(".rar")
                             ):
                                 f_path = ospath.join(dirpath, file_)
                                 t_path = (
@@ -250,9 +251,8 @@ class MirrorLeechListener:
                                 ]
                                 if not pswd:
                                     del cmd[2]
-                                if (
-                                    self.suproc == "cancelled"
-                                    or self.suproc is not None
+                                if self.suproc == "cancelled" or (
+                                    self.suproc is not None
                                     and self.suproc.returncode == -9
                                 ):
                                     return
@@ -366,7 +366,9 @@ class MirrorLeechListener:
                 checked = False
                 LEECH_SPLIT_SIZE = MAX_SPLIT_SIZE
                 for dirpath, _, files in await sync_to_async(
-                    walk, up_dir, topdown=False
+                    walk,
+                    up_dir,
+                    topdown=False,
                 ):
                     for file_ in files:
                         f_path = ospath.join(dirpath, file_)
@@ -376,7 +378,10 @@ class MirrorLeechListener:
                                 checked = True
                                 async with download_dict_lock:
                                     download_dict[self.uid] = SplitStatus(
-                                        up_name, size, gid, self
+                                        up_name,
+                                        size,
+                                        gid,
+                                        self,
                                     )
                                 LOGGER.info(f"Splitting: {up_name}")
                             res = await split_file(
@@ -456,13 +461,23 @@ class MirrorLeechListener:
             RCTransfer = RcloneTransferHelper(self, up_name)
             async with download_dict_lock:
                 download_dict[self.uid] = RcloneStatus(
-                    RCTransfer, self.message, gid, "up"
+                    RCTransfer,
+                    self.message,
+                    gid,
+                    "up",
                 )
             await update_all_messages()
             await RCTransfer.upload(up_path, size)
 
     async def onUploadComplete(
-        self, link, size, files, folders, mime_type, name, rclonePath=""
+        self,
+        link,
+        size,
+        files,
+        folders,
+        mime_type,
+        name,
+        rclonePath="",
     ):
         user_id = self.message.from_user.id
         name, _ = await process_file(name, user_id, is_mirror=not self.is_leech)
@@ -499,7 +514,8 @@ class MirrorLeechListener:
                             await edit_message(self.linkslogmsg, totalmsg)
                             await send_message(self.botpmmsg, totalmsg)
                             self.linkslogmsg = await send_message(
-                                self.linkslogmsg, "Fetching Details..."
+                                self.linkslogmsg,
+                                "Fetching Details...",
                             )
                         attachmsg = False
                         await sleep(1)
