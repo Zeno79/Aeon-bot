@@ -5,7 +5,6 @@ from html import escape
 from aiofiles.os import listdir, makedirs, remove
 from aiofiles.os import path as aiopath
 from aioshutil import move
-from requests import utils as rutils
 
 from bot import (
     DOWNLOAD_DIR,
@@ -360,6 +359,7 @@ class TaskListener(TaskConfig):
             del RCTransfer
         return
 
+
 async def on_upload_complete(
     self,
     link,
@@ -377,7 +377,7 @@ async def on_upload_complete(
         await database.rm_complete_task(self.message.link)
 
     # Extract file extension for format display
-    file_extension = self.name.split(".")[-1].upper()
+    self.name.split(".")[-1].upper()
 
     # Build custom message format
     msg = (
@@ -393,7 +393,9 @@ async def on_upload_complete(
 
     if self.is_leech:
         await send_message(self.user_id, msg)
-        await send_message(self.message, "Your task is complete. Please check your inbox.")
+        await send_message(
+            self.message, "Your task is complete. Please check your inbox."
+        )
     else:
         buttons = None
         if link:
@@ -402,7 +404,9 @@ async def on_upload_complete(
             buttons = buttons.build_menu(1)
 
         await send_message(self.user_id, msg, buttons)
-        await send_message(self.message, "Your task is complete. Please check your inbox.")
+        await send_message(
+            self.message, "Your task is complete. Please check your inbox."
+        )
 
     if self.seed:
         await clean_target(self.up_dir)
