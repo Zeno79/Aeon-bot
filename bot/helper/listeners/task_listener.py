@@ -394,7 +394,8 @@ async def on_upload_complete(
     if self.is_leech:
         await send_message(self.user_id, msg)
         await send_message(
-            self.message, "Your task is complete. Please check your inbox."
+            self.message,
+            "Your task is complete. Please check your inbox.",
         )
     else:
         buttons = None
@@ -405,7 +406,8 @@ async def on_upload_complete(
 
         await send_message(self.user_id, msg, buttons)
         await send_message(
-            self.message, "Your task is complete. Please check your inbox."
+            self.message,
+            "Your task is complete. Please check your inbox.",
         )
 
     if self.seed:
