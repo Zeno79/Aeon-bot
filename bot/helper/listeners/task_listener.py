@@ -360,121 +360,74 @@ class TaskListener(TaskConfig):
             del RCTransfer
         return
 
-    async def on_upload_complete(
-        self,
-        link,
-        files,
-        folders,
-        mime_type,
-        rclone_path="",
-        dir_id="",
+async def on_upload_complete(
+    self,
+    link,
+    files,
+    folders,
+    mime_type,
+    rclone_path="",
+    dir_id="",
+):
+    if (
+        self.is_super_chat
+        and Config.INCOMPLETE_TASK_NOTIFIER
+        and Config.DATABASE_URL
     ):
-        if (
-            self.is_super_chat
-            and Config.INCOMPLETE_TASK_NOTIFIER
-            and Config.DATABASE_URL
-        ):
-            await database.rm_complete_task(self.message.link)
-        msg = f"<b>Name: </b><code>{escape(self.name)}</code>\n\n<b>Size: </b>{get_readable_file_size(self.size)}"
-        done_msg = f"{self.tag}\nYour task is complete\nPlease check your inbox."
-        LOGGER.info(f"Task Done: {self.name}")
-        if self.is_leech:
-            msg += f"\n<b>Total Files: </b>{folders}"
-            if mime_type != 0:
-                msg += f"\n<b>Corrupted Files: </b>{mime_type}"
-            msg += f"\n<b>cc: </b>{self.tag}\n\n"
-            if not files:
-                await send_message(self.message, msg)
-            else:
-                fmsg = ""
-                for index, (url, name) in enumerate(files.items(), start=1):
-                    fmsg += f"{index}. <a href='{url}'>{name}</a>\n"
-                    if len(fmsg.encode() + msg.encode()) > 4000:
-                        await send_message(
-                            self.user_id,
-                            f"{msg}<blockquote expandable>{fmsg}</blockquote>",
-                        )
-                        if Config.LOG_CHAT_ID:
-                            await send_message(
-                                int(Config.LOG_CHAT_ID),
-                                f"{msg}<blockquote expandable>{fmsg}</blockquote>",
-                            )
-                        await sleep(1)
-                        fmsg = ""
-                if fmsg != "":
-                    await send_message(
-                        self.user_id,
-                        f"{msg}<blockquote expandable>{fmsg}</blockquote>",
-                    )
-                    if Config.LOG_CHAT_ID:
-                        await send_message(
-                            int(Config.LOG_CHAT_ID),
-                            f"{msg}<blockquote expandable>{fmsg}</blockquote>",
-                        )
-                await send_message(self.message, done_msg)
-        else:
-            msg += f"\n\n<b>Type: </b>{mime_type}"
-            if mime_type == "Folder":
-                msg += f"\n<b>SubFolders: </b>{folders}"
-                msg += f"\n<b>Files: </b>{files}"
-            if link or (
-                rclone_path and Config.RCLONE_SERVE_URL and not self.private_link
-            ):
-                buttons = ButtonMaker()
-                if link:
-                    buttons.url_button("☁️ Cloud Link", link)
-                else:
-                    msg += f"\n\nPath: <code>{rclone_path}</code>"
-                if rclone_path and Config.RCLONE_SERVE_URL and not self.private_link:
-                    remote, rpath = rclone_path.split(":", 1)
-                    url_path = rutils.quote(f"{rpath}")
-                    share_url = f"{Config.RCLONE_SERVE_URL}/{remote}/{url_path}"
-                    if mime_type == "Folder":
-                        share_url += "/"
-                    buttons.url_button("🔗 Rclone Link", share_url)
-                if not rclone_path and dir_id:
-                    INDEX_URL = ""
-                    if self.private_link:
-                        INDEX_URL = self.user_dict.get("INDEX_URL", "") or ""
-                    elif Config.INDEX_URL:
-                        INDEX_URL = Config.INDEX_URL
-                    if INDEX_URL:
-                        share_url = f"{INDEX_URL}findpath?id={dir_id}"
-                        buttons.url_button("⚡ Index Link", share_url)
-                        if mime_type.startswith(("image", "video", "audio")):
-                            share_urls = f"{INDEX_URL}findpath?id={dir_id}&view=true"
-                            buttons.url_button("🌐 View Link", share_urls)
-                button = buttons.build_menu(2)
-            else:
-                msg += f"\n\nPath: <code>{rclone_path}</code>"
-                button = None
-            msg += f"\n\n<b>cc: </b>{self.tag}"
-            await send_message(self.user_id, msg, button)
-            if Config.LOG_CHAT_ID:
-                await send_message(int(Config.LOG_CHAT_ID), msg, button)
-            await send_message(self.message, done_msg)
-        if self.seed:
-            await clean_target(self.up_dir)
-            async with queue_dict_lock:
-                if self.mid in non_queued_up:
-                    non_queued_up.remove(self.mid)
-            await start_from_queued()
-            return
-        await clean_download(self.dir)
-        async with task_dict_lock:
-            if self.mid in task_dict:
-                del task_dict[self.mid]
-            count = len(task_dict)
-        if count == 0:
-            await self.clean()
-        else:
-            await update_status_message(self.message.chat.id)
+        await database.rm_complete_task(self.message.link)
 
+    # Extract file extension for format display
+    file_extension = self.name.split(".")[-1].upper()
+
+    # Build custom message format
+    msg = (
+        f"<b>{escape(self.name)}</b>\n\n"
+        f"• <b>Size:</b> <code>{get_readable_file_size(self.size)}</code>\n"
+        f"• <b>Elapsed:</b> {self.elapsed_time} minutes\n"
+        f"• <b>User ID:</b> <code>{self.user_id}</code>\n"
+        f"• <b>By:</b> @{self.message.chat.username if self.message.chat.username else 'Unknown'}\n\n"
+        "Files has been sent to your inbox."
+    )
+
+    LOGGER.info(f"Task Done: {self.name}")
+
+    if self.is_leech:
+        await send_message(self.user_id, msg)
+        await send_message(self.message, "Your task is complete. Please check your inbox.")
+    else:
+        buttons = None
+        if link:
+            buttons = ButtonMaker()
+            buttons.url_button("☁️ Cloud Link", link)
+            buttons = buttons.build_menu(1)
+
+        await send_message(self.user_id, msg, buttons)
+        await send_message(self.message, "Your task is complete. Please check your inbox.")
+
+    if self.seed:
+        await clean_target(self.up_dir)
         async with queue_dict_lock:
             if self.mid in non_queued_up:
                 non_queued_up.remove(self.mid)
-
         await start_from_queued()
+        return
+
+    await clean_download(self.dir)
+    async with task_dict_lock:
+        if self.mid in task_dict:
+            del task_dict[self.mid]
+        count = len(task_dict)
+
+    if count == 0:
+        await self.clean()
+    else:
+        await update_status_message(self.message.chat.id)
+
+    async with queue_dict_lock:
+        if self.mid in non_queued_up:
+            non_queued_up.remove(self.mid)
+
+    await start_from_queued()
 
     async def on_download_error(self, error, button=None):
         async with task_dict_lock:
