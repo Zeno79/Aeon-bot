@@ -15,7 +15,7 @@ class BotCommands:
     NzbLeechCommand = [f"nzbleech{i}", f"nl{i}"]
     YtdlLeechCommand = [f"ytdlleech{i}", f"yl{i}"]
     CloneCommand = f"clone{i}"
-    MediaInfoCommand = f"mediainfo{i}"
+    MediaInfoCommand = [f"mediainfo{i}", f"mi{i}"]
     CountCommand = f"count{i}"
     DeleteCommand = f"del{i}"
     CancelAllCommand = f"cancelall{i}"
@@ -23,14 +23,14 @@ class BotCommands:
     ListCommand = f"list{i}"
     SearchCommand = f"search{i}"
     HydraSearchCommamd = f"nzbsearch{i}"
-    StatusCommand = [f"status{i}", "statusall"]
+    StatusCommand = f"status{i}"
     UsersCommand = f"users{i}"
     AuthorizeCommand = f"auth{i}"
     UnAuthorizeCommand = f"unauth{i}"
     AddSudoCommand = f"addsudo{i}"
     RmSudoCommand = f"rmsudo{i}"
     PingCommand = f"ping{i}"
-    RestartCommand = [f"restart{i}", "restartall"]
+    RestartCommand = [f"restart{i}", f"r{i}"]  # Fixed list syntax
     RestartSessionsCommand = f"restartses{i}"
     StatsCommand = f"stats{i}"
     HelpCommand = f"help{i}"
@@ -39,8 +39,8 @@ class BotCommands:
     AExecCommand = f"aexec{i}"
     ExecCommand = f"exec{i}"
     ClearLocalsCommand = f"clearlocals{i}"
-    BotSetCommand = f"botsettings{i}"
-    UserSetCommand = f"settings{i}"
+    BotSetCommand = [f"botsettings{i}", f"bs{i}"]
+    UserSetCommand = [f"settings{i}", f"us{i}"]
     SpeedTest = f"speedtest{i}"
     BroadcastCommand = [f"broadcast{i}", "broadcastall"]
     SelectCommand = f"sel{i}"
